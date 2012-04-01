@@ -4,11 +4,17 @@
 ;;;
 
 (use gauche.test)
+(use srfi-1)
 
 (test-start "rfc.uuid")
 (use rfc.uuid)
 (test-module 'rfc.uuid)
 
+(test* "fake-node" #f
+       (let ((before (fake-node))
+	     (junk (fake-node #t)))
+	 (equal? before (fake-node))))
+ 
 (test* "<uuid> by uuid1" #t
        (is-a? (uuid1) <uuid>))
 
@@ -77,6 +83,24 @@
        (let ((int 32384678300955863279585068345648795391))
 	 (x->uuid int)))
 
+(test* "nil-uuid str" #t
+       (and
+	(equal?
+	 (x->string nil-uuid)
+	 (x->string (x->uuid "00000000-0000-0000-0000-000000000000")))
+	(equal?
+	 (x->string nil-uuid)
+	 (x->string (x->uuid 0)))))
+
+(test* "nil-uuid int" #t
+       (and
+	(eqv?
+	 (x->integer nil-uuid)
+	 (x->integer (x->uuid "00000000-0000-0000-0000-000000000000")))
+	(equal?
+	 (x->integer nil-uuid)
+	 (x->integer (x->uuid 0)))))
+
 (test* "uuid-variant? 0" 'RFC4122
        (uuid-variant? (uuid1)))
 
@@ -100,6 +124,14 @@
 
 (test* "uuid-version? 3" 4
        (uuid-version? (x->uuid "185d0fea-3c8d-4a1d-a4dd-cda16614ceff")))
+
+(test* "uuid1 duplicate check 10000" 0
+       (let1 ul (map (^a (uuid 1))(iota 10000))
+	 (length (filter (^a (>= (length (filter (^b (equal? a b)) ul)) 2)) ul))))
+
+(test* "uuid4 duplicate check 10000" 0
+       (let1 ul (map (^a (uuid 4))(iota 10000))
+	 (length (filter (^a (>= (length (filter (^b (equal? a b)) ul)) 2)) ul))))
 
 ;; epilogue
 (test-end)

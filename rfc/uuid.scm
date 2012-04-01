@@ -33,7 +33,8 @@
    x->integer
    x->uuid
    uuid-version?
-   uuid-variant?))
+   uuid-variant?
+   nil-uuid))
 
 (select-module rfc.uuid)
 
@@ -124,6 +125,15 @@
 (define (uuid5)
   (error <uuid-error> "Not support UUID version 5."))
 
+(define-constant nil-uuid
+  (make <uuid>
+    :time_low 0
+    :time_mid 0
+    :time_hi_and_version 0
+    :clock_seq_hi_and_reserved 0
+    :clock_seq_low 0
+    :node 0))
+
 (define-method x->string ((uuid <uuid>))
   (string-append
    (format #f "~8,'0x" (~ uuid 'time_low)) "-"
@@ -142,7 +152,9 @@
      (~ uuid 'node)))
 
 (define-method x->uuid ((uuid <string>))
-  (cond ((#/^(?:urn:uuid:)?([\dA-F]{8})\-([\dA-F]{4})\-([\dA-F]{4})\-([\dA-F]{4})\-([\dA-F]{12})$/i uuid)
+  (cond ((#/^(?:urn:uuid:)?00000000\-0000\-0000\-0000\-000000000000$/ uuid)
+	 nil-uuid)
+	((#/^(?:urn:uuid:)?([\dA-F]{8})\-([\dA-F]{4})\-([\dA-F]{4})\-([\dA-F]{4})\-([\dA-F]{12})$/i uuid)
 	 => (^a 
 	     (let ((time_hi_and_version (string->number (a 3) 16))
 		   (clock_seq_hi_and_reserved (bit-field (string->number (a 4) 16) 8 16)))
@@ -159,18 +171,19 @@
 	(else (error <uuid-error> "Not UUID string."))))
 
 (define-method x->uuid ((uuid <integer>))
-  (let ((time_hi_and_version (bit-field uuid 64 80))
-	(clock_seq_hi_and_reserved (bit-field uuid 56 64)))
-    (if (and (<= 1 (bit-field time_hi_and_version 12 16) 5)
-	     (= (bit-field clock_seq_hi_and_reserved 6 8) 2))
-	(make <uuid> 
-	  :time_low (bit-field uuid 96 128)
-	  :time_mid (bit-field uuid 80 96)
-	  :time_hi_and_version time_hi_and_version
-	  :clock_seq_hi_and_reserved clock_seq_hi_and_reserved
-	  :clock_seq_low (bit-field uuid 48 56)
-	  :node (bit-field uuid 0 48))
-	(error <uuid-error> "Not UUID number."))))
+  (if (zero? uuid) nil-uuid
+      (let ((time_hi_and_version (bit-field uuid 64 80))
+	    (clock_seq_hi_and_reserved (bit-field uuid 56 64)))
+	(if (and (<= 1 (bit-field time_hi_and_version 12 16) 5)
+		 (= (bit-field clock_seq_hi_and_reserved 6 8) 2))
+	    (make <uuid> 
+	      :time_low (bit-field uuid 96 128)
+	      :time_mid (bit-field uuid 80 96)
+	      :time_hi_and_version time_hi_and_version
+	      :clock_seq_hi_and_reserved clock_seq_hi_and_reserved
+	      :clock_seq_low (bit-field uuid 48 56)
+	      :node (bit-field uuid 0 48))
+	    (error <uuid-error> "Not UUID number.")))))
 
 (define-method uuid-version? ((uuid <uuid>))
   (bit-field (~ uuid 'time_hi_and_version) 12 16))
