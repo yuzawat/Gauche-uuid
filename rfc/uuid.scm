@@ -198,4 +198,4 @@
 	'NCS-BACKWARD-COMPATIBILITY)))
 
 ;; Epilogue
-(provide "rfc.uuid")
+(provide "rfc/uuid")
