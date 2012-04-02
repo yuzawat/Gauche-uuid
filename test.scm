@@ -39,6 +39,12 @@
 (test* "uuid 5" (test-error <uuid-error>)
        (uuid 5))
 
+(test* "uuid? True" #t
+       (uuid? (uuid1)))
+
+(test* "uuid? False" #f
+       (uuid? (uuid 1)))
+
 (test* "x->string uuid1" #t
       (regmatch? (#/^[\dA-F]{8}\-[\dA-F]{4}\-1[\dA-F]{3}\-[89ab][\dA-F]{3}\-[\dA-F]{12}$/i (x->string (uuid1)))))
 
@@ -126,11 +132,11 @@
        (uuid-version? (x->uuid "185d0fea-3c8d-4a1d-a4dd-cda16614ceff")))
 
 (test* "uuid1 duplicate check 10000" 0
-       (let1 ul (map (^a (uuid 1))(iota 10000))
+       (let1 ul (map (^a (x->integer (uuid1)))(iota 10000))
 	 (length (filter (^a (>= (length (filter (^b (equal? a b)) ul)) 2)) ul))))
 
 (test* "uuid4 duplicate check 10000" 0
-       (let1 ul (map (^a (uuid 4))(iota 10000))
+       (let1 ul (map (^a (x->integer (uuid4)))(iota 10000))
 	 (length (filter (^a (>= (length (filter (^b (equal? a b)) ul)) 2)) ul))))
 
 ;; epilogue

@@ -18,8 +18,8 @@
 
 (define-module rfc.uuid
   (use gauche.parameter)
-  (use math.mt-random)
   (use srfi-19)
+  (use srfi-27)
   (export
    <uuid>
    <uuid-error>
@@ -34,6 +34,7 @@
    x->uuid
    uuid-version?
    uuid-variant?
+   uuid?
    nil-uuid))
 
 (select-module rfc.uuid)
@@ -59,8 +60,7 @@
 	 :init-keyword :node)))
 
 (define (random-bit bit)
-  (let ((m (make <mersenne-twister> :seed (values-ref (sys-gettimeofday) 1))))
-    (mt-random-integer m (- (expt 2 bit) 1))))
+  ((random-source-make-integers default-random-source) (expt 2 bit)))
 
 (define (make-fake-node)
   (copy-bit 40 (random-bit 48) 1))
@@ -196,6 +196,9 @@
 		'MICROSOFT-BACKWARD-COMPATIBILITY)
 	    'RFC4122)
 	'NCS-BACKWARD-COMPATIBILITY)))
+
+(define (uuid? uuid)
+  (is-a? uuid <uuid>))
 
 ;; Epilogue
 (provide "rfc/uuid")
