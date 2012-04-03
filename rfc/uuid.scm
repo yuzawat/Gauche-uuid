@@ -3,6 +3,10 @@
 ;;;  A Universally Unique IDentifier (UUID) URN Namespace
 ;;;    http://www.ietf.org/rfc/rfc4122.txt
 ;;;
+;;; Last Updated: "2012/04/03 15:35.18"
+;;;
+;;;  Copyright (c) 2012  yuzawat <suzdalenator@gmail.com>
+
 ;;; This module supports only UUID version 1 and 4.
 ;;;
 ;;; *  usage

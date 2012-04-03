@@ -1,1 +1,68 @@
 RFC4122 (UUID) for Gauche
+
+Abstract:
+ a RFC 4122 UUID implementation of Gauche.
+ <http://www.ietf.org/rfc/rfc4122.txt>
+
+Author: yuzawat <suzdalenator at gmail.com>
+
+Version: 0.1 2012/04/03
+======================================================================
+
+Module: rfc.uuid
+
+Class: <uuid>
+ UUID object. It is enable to convert into a string or an integer with x->string or x->integer.
+ Also a string or an integer are enabled to be converted <uuid> with x->uuid.
+
+Instance Variable of <uuid>: time_low
+Instance Variable of <uuid>: time_mid
+Instance Variable of <uuid>: time_hi_and_version
+Instance Variable of <uuid>: clock_seq_hi_and_reserved
+Instance Variable of <uuid>: clock_seq_low
+Instance Variable of <uuid>: node
+ Each slots of an instance are correspond to UUID fields.
+
+Condition: <uuid-error>
+ Condition of this module. Inherits <error>.
+
+Function: uuid? val
+ Returns #t if val is <uuid>, else #f.
+
+Function: uuid &optional version_number
+ Returns UUID string (like "087596db-53e5-47d1-a81b-9dea24393ae2"). 
+ Default UUID is version 4. 
+ If specified optional version number, like 1 or 4, returns UUID string of each version, but implemented version 1 or 4 only.
+
+Function: uuid1 &optional IEEE_802_MAC
+ Returns <uuid> of version 1. the node value of UUID is generated randomly.
+ If sepcified optional IEEE 802 MAC address, as string like "XX:XX:XX:XX:XX:XX", or as integer of 48bit, uses it the node value.
+
+Function: uuid4
+ Returns <uuid> of version 4.
+
+Method: x->string (u <uuid>)
+ Returns UUID string.
+
+Method: x->integer (u <uuid>)
+ Returns UUID integer.
+
+Method: x->uuid (str <string>)
+ Returns <uuid>. If string is invalid UUID, raise <uuid-error>.
+
+Method: x->uuid (int <integer>)
+ Returns <uuid>. If integer is invalid UUID, raise <uuid-error>.
+
+Method: uuid-version? (u <uuid>)
+ Returns UUID version number.
+
+Method: uuid-variant? (u <uuid>)
+ Returns symbol of UUID valiant, like NCS-BACKWARD-COMPATIBILITY, RFC4122, MICROSOFT-BACKWARD-COMPATIBILITY.
+
+Constant: nil-uuid
+ Nil UUID
+
+======================================================================
+
+Todo
+- UUID version 3 and 5?
