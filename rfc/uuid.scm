@@ -74,10 +74,11 @@
 		  (^a (make-fake-node))))
 
 ;;Current time in 100-nanoseconds resolution from 00:00:00.00, 15 October 1582.
+(define-constant origin-time (date->time-utc (make-date 0 0 0 0 15 10 1582 0)))
+(define-constant origin-number (* (abs (~ origin-time 'second)) 1000000000))
 (define (timestamp)
-  (let ((pt (date->time-utc (make-date 0 0 0 0 15 10 1582 0)))
-	(ct (current-time)))
-    (/ (+ (* (abs (~ pt 'second)) 1000000000)
+  (let1 ct (current-time)
+    (/ (+ origin-number
 	  (+ (* (~ ct 'second) 1000000000)
 	     (~ ct 'nanosecond))) 
        100)))
