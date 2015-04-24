@@ -142,65 +142,11 @@
     :node 0))
 
 (define-method x->string ((uuid <uuid>))
-  (uuid->string5 uuid))
+  (uuid->string uuid))
 
-;; time "/usr/local/bin/gosh" -I. -I. ./perf.scm 100000
-;;
-;; real	0m10.324s
-;; user	0m17.575s
-;; sys	0m4.693s
-(define (uuid->string1 uuid)
-  (string-append
-   (format #f "~8,'0x" (~ uuid 'time_low)) "-"
-   (format #f "~4,'0x" (~ uuid 'time_mid)) "-"
-   (format #f "~4,'0x" (~ uuid 'time_hi_and_version)) "-"
-   (format #f "~2,'0x" (~ uuid 'clock_seq_hi_and_reserved))
-   (format #f "~2,'0x" (~ uuid 'clock_seq_low)) "-"
-   (format #f "~12,'0x" (~ uuid 'node))))
-
-;; time "/usr/local/bin/gosh" -I. -I. ./perf.scm 100000
-;;
-;; real	0m8.136s
-;; user	0m13.465s
-;; sys	0m3.107s
-(define (uuid->string2 uuid)
-  (format #f "~8,'0x-~4,'0x-~4,'0x-~2,'0x~2,'0x-~12,'0x"
-	  (~ uuid 'time_low) (~ uuid 'time_mid) (~ uuid 'time_hi_and_version)
-	  (~ uuid 'clock_seq_hi_and_reserved) (~ uuid 'clock_seq_low) (~ uuid 'node)))
-
-;; time "/usr/local/bin/gosh" -I. -I. ./perf.scm 100000
-;;
-;; real	0m7.807s
-;; user	0m13.017s
-;; sys	0m2.921s
-(define (uuid->string3 uuid)
-  (let1 v (x->integer uuid)
-    (format #f "~8,'0x-~4,'0x-~4,'0x-~4,'0x,-~12,'0x"
-	    (bit-field v 96 128) (bit-field v 80 96) (bit-field v 64 80) (bit-field v 48 64) (~ uuid 'node))))
-
-;; time "/usr/local/bin/gosh" -I. -I. ./perf.scm 100000
-;;
-;; real	0m3.224s
-;; user	0m5.410s
-;; sys	0m1.094s
-(define (uuid->string4 uuid)
-  (let* ((v (x->integer uuid))
-	 (s (format #f "~32,'0x" v)))
-    (string-append
-     (substring s 0 8) "-"
-     (substring s 8 12) "-"
-     (substring s 12 16) "-"
-     (substring s 16 20) "-"
-     (substring s 20 32))))
-
-;; time "/usr/local/bin/gosh" -I. -I. ./perf.scm 100000
-;;
-;; real	0m3.088s
-;; user	0m3.748s
-;; sys	0m0.386s
 (define-constant buffer-template (string->u8vector "00000000-0000-0000-0000-000000000000"))
 (define-constant xdigit-table (string->u8vector "0123456789abcdef"))
-(define (uuid->string5 uuid)
+(define (uuid->string uuid)
   (let ((v (x->integer uuid))
 	(buf (u8vector-copy buffer-template)))
     (for-each (^ (i p) (u8vector-set! buf i (u8vector-ref xdigit-table (bit-field v p (+ 4 p)))))
