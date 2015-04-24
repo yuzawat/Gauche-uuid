@@ -22,6 +22,8 @@
 
 (define-module rfc.uuid
   (use gauche.parameter)
+  (use gauche.uvector)
+  (use gauche.collection)
   (use srfi-19)
   (use srfi-27)
   (export
@@ -74,10 +76,11 @@
 		  (^a (make-fake-node))))
 
 ;;Current time in 100-nanoseconds resolution from 00:00:00.00, 15 October 1582.
+(define-constant origin-time (date->time-utc (make-date 0 0 0 0 15 10 1582 0)))
+(define-constant origin-number (* (abs (~ origin-time 'second)) 1000000000))
 (define (timestamp)
-  (let ((pt (date->time-utc (make-date 0 0 0 0 15 10 1582 0)))
-	(ct (current-time)))
-    (/ (+ (* (abs (~ pt 'second)) 1000000000)
+  (let1 ct (current-time)
+    (/ (+ origin-number
 	  (+ (* (~ ct 'second) 1000000000)
 	     (~ ct 'nanosecond))) 
        100)))
@@ -139,13 +142,17 @@
     :node 0))
 
 (define-method x->string ((uuid <uuid>))
-  (string-append
-   (format #f "~8,'0x" (~ uuid 'time_low)) "-"
-   (format #f "~4,'0x" (~ uuid 'time_mid)) "-"
-   (format #f "~4,'0x" (~ uuid 'time_hi_and_version)) "-"
-   (format #f "~2,'0x" (~ uuid 'clock_seq_hi_and_reserved))
-   (format #f "~2,'0x" (~ uuid 'clock_seq_low)) "-"
-   (format #f "~12,'0x" (~ uuid 'node))))
+  (uuid->string uuid))
+
+(define-constant buffer-template (string->u8vector "00000000-0000-0000-0000-000000000000"))
+(define-constant xdigit-table (string->u8vector "0123456789abcdef"))
+(define (uuid->string uuid)
+  (let ((v (x->integer uuid))
+	(buf (u8vector-copy buffer-template)))
+    (for-each (^ (i p) (u8vector-set! buf i (u8vector-ref xdigit-table (bit-field v p (+ 4 p)))))
+	      '(35 34 33 32 31 30 29 28 27 26 25 24 22 21 20 19 17 16 15 14 12 11 10  9  7   6   5   4   3   2   1   0)
+	      '( 0  4  8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120 124))
+    (u8vector->string buf)))
 
 (define-method x->integer ((uuid <uuid>))
   (+ (ash (~ uuid 'time_low) 96)
